@@ -1,0 +1,185 @@
+Info from Matterport API
+{
+  Mode: {
+    Mode: {
+      INSIDE: 'mode.inside',      
+      OUTSIDE: 'mode.outside',    
+      DOLLHOUSE: 'mode.dollhouse',
+      FLOORPLAN: 'mode.floorplan',
+      TRANSITIONING: 'mode.transitioning'
+    },
+    TransitionType: {
+      INSTANT: 'transition.instant',
+      FLY: 'transition.fly',
+      FADEOUT: 'transition.fade'
+    },
+    Event: {
+      CHANGE_START: 'viewmode.changestart',
+      CHANGE_END: 'viewmode.changeend'
+    },
+    Alignment: { ALIGNED: 'aligned', UNALIGNED: 'unaligned' },
+    Placement: { UNPLACED: 'unplaced', AUTO: 'auto', MANUAL: 'manual' }
+  },
+  Mattertag: {
+    Transition: {
+      INSTANT: 'transition.instant',
+      FLY: 'transition.fly',
+      FADEOUT: 'transition.fade'
+    },
+    MediaType: {
+      NONE: 'mattertag.media.none',
+      PHOTO: 'mattertag.media.photo',
+      VIDEO: 'mattertag.media.video',
+      RICH: 'mattertag.media.rich'
+    },
+    Event: { HOVER: 'tag.hover', CLICK: 'tag.click' }
+  },
+  Sweep: {
+    Transition: {
+      INSTANT: 'transition.instant',
+      FLY: 'transition.fly',
+      FADEOUT: 'transition.fade'
+    },
+    Event: { ENTER: 'sweep.enter', EXIT: 'sweep.exit' }
+  },
+  Camera: {
+    Direction: {
+      FORWARD: 'FORWARD',
+      LEFT: 'LEFT',
+      RIGHT: 'RIGHT',
+      BACK: 'BACK',
+      UP: 'UP',
+      DOWN: 'DOWN'
+    },
+    Event: { MOVE: 'camera.move' },
+    pose: {}
+  },
+  App: {
+    Phase: {
+      UNINITIALIZED: 'appphase.uninitialized',
+      WAITING: 'appphase.waiting',
+      LOADING: 'appphase.loading',
+      STARTING: 'appphase.starting',
+      PLAYING: 'appphase.playing',
+      ERROR: 'appphase.error'
+    },
+    Application: {
+      WEBVR: 'application.webvr',
+      SHOWCASE: 'application.showcase',
+      WORKSHOP: 'application.workshop'
+    },
+    Event: {
+      PHASE_CHANGE: 'application.phasechange',
+      APP_CHANGE: 'application.appchange'
+    },
+    state: {}
+  },
+  Tour: {
+    Event: {
+      STARTED: 'tour.started',
+      STOPPED: 'tour.stopped',
+      ENDED: 'tour.ended',
+      STEPPED: 'tour.stepped'
+    }
+  },
+  Model: { Event: { MODEL_LOADED: 'model.loaded' } },
+  Floor: {
+    Event: {
+      CHANGE_START: 'floors.changestart',
+      CHANGE_END: 'floors.changeend'
+    }
+  },
+  Label: {
+    Event: {
+      VISIBILITY_CHANGED: 'label.visibilitychange',
+      POSITION_UPDATED: 'label.positionupdated'
+    }
+  },
+  Stat: { Event: { FPS: 'stat.fps' } },
+  Pointer: {
+    Colliders: {
+      NONE: 'intersectedobject.none',
+      MODEL: 'intersectedobject.model',
+      TAG: 'intersectedobject.tag',
+      SWEEP: 'intersectedobject.sweep',
+      UNKNOWN: 'intersectedobject.unknown'
+    },
+    intersection: {}
+  },
+  Measurements: {},
+  Renderer: {},
+  VR: {},
+  Settings: {},
+  Conversion: {}
+}
+
+
+
+====================================================
+POSE POSITION AND DETAILS:
+
+{
+  position: {
+    x: -4.717839301270033,
+    y: 1.6375555768948935,
+    z: -6.14192004858587
+  },
+  rotation: { x: -0.012294608561640956, y: 158.0236865876046 },
+  projection: {
+    '0': 1.042580246925354,
+    '1': 0,
+    '2': 0,
+    '3': 0,
+    '4': 0,
+    '5': 1.3032253980636597,
+    '6': 0,
+    '7': 0,
+    '8': 0,
+    '9': 0,
+    '10': -1.0001333951950073,
+    '11': -0.20001333951950073,
+    '12': 0,
+    '13': 0,
+    '14': -1,
+    '15': 0
+  },
+  sweep: 'fba8191c1332410c938b2a0cc13c11e6',
+  mode: 'mode.transitioning'
+}
+{
+  position: {
+    x: -4.7189860343933105,
+    y: 1.636521816253662,
+    z: -6.14117431640625
+  },
+  rotation: { x: 0, y: 158.0236865876046 },
+  projection: {
+    '0': 1.042580246925354,
+    '1': 0,
+    '2': 0,
+    '3': 0,
+    '4': 0,
+    '5': 1.3032253980636597,
+    '6': 0,
+    '7': 0,
+    '8': 0,
+    '9': 0,
+    '10': -1.0001333951950073,
+    '11': -0.20001333951950073,
+    '12': 0,
+    '13': 0,
+    '14': -1,
+    '15': 0
+  },
+  sweep: 'fba8191c1332410c938b2a0cc13c11e6',
+  mode: 'mode.inside'
+}
+
+{
+  Transition: {
+    INSTANT: 'transition.instant',
+    FLY: 'transition.fly',
+    FADEOUT: 'transition.fade'
+  },
+  Event: { ENTER: 'sweep.enter', EXIT: 'sweep.exit' }
+}
