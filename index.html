@@ -53,15 +53,9 @@
                         .then((sdk) => {
 
                             //sdk.Camera.pose = test_pose;
-                            let count = 0
-
                             sdk.Camera.pose.subscribe((pose) => { //sends pose data continuously when camera moves
-                                count += 1;
                                 last_pose = pose;
-                                console.log("NEW SWEEP" + pose.sweep);
-                                if (hashid === 1 /*&& count === 25*/) { //count is to slowdown sending data
-                                    count = 0;
-
+                                if (hashid === 1) { //count is to slowdown sending data
                                     socket.emit('sweepid', pose);
                                 }
                             });
@@ -72,47 +66,33 @@
                             });
                             */
 
-                            sdk.on(sdk.Sweep.Event.ENTER, async (e1, e2) => {
-                                console.log('LEAVING ' + e1 + ' ' + e2);
-                            });
-
-                            sdk.on(sdk.Mode.Event.CHANGE_END, (e1, e2) => {
-
-                                if (hashid === 1 && e2 === 'mode.dollhouse') {
-                                    socket.emit('viewmode', last_pose.sweep);
-                                    console.log('MODE CHANGEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE: ' + e1 + e2);
+                            sdk.on(sdk.Mode.Event.CHANGE_END, (from, to) => {
+                                if (hashid === 1 && to === 'mode.dollhouse') { //if leader is moving to dollhouse 
+                                    socket.emit('viewmode', last_pose.sweep); //send current sweep UUID thru 'viewmode' socket
                                 }
 
                             });
 
                             socket.on('viewmode', (msg) => {
-                                sweepid_cache = msg;
-                                console.log('The view mode of sweeeeeeeeeeeeeeeeeeeeep');
+                                sweepid_cache = msg; //receive the current sweep UUID
                             });
 
 
                             sdk.on(sdk.Sweep.Event.ENTER, async () => {
                                 if (hashid === 1) {
-                                    setTimeout(() => {
-                                        console.log("Test which is last");
-                                        socket.emit('sweepid', last_pose);
-                                    }, 800);
+                                    setTimeout(() => {  //last sweep update
+                                        socket.emit('sweepid', last_pose); //delay the signaling so it waits to be last
+                                    }, 900);
                                 }
 
                                 else {
-                                    if (received_pose && received_pose.mode !== 'mode.transitioning') {
+                                    //makes the transition from inside to dollhouse or floorplan
+                                    //delayed to be the last action
+                                    if (received_pose && received_pose.mode !== 'mode.transitioning') { 
                                         await sdk.Mode.moveTo(received_pose.mode, {
                                             position: received_pose.position,
                                             rotation: received_pose.rotation,
                                         });
-
-                                        /*                                     await sdk.Sweep.moveTo(received_pose.sweep, { //update camera's position for the last time
-                                                                                rotation: received_pose.rotation,
-                                                                                transition: sdk.Sweep.Transition.FLY,
-                                        
-                                                                            }); */
-
-
                                     }
                                 }
 
@@ -122,37 +102,27 @@
                                 if (hashid !== 1) {
                                     received_pose = msg;
                                     if (received_pose.mode === 'mode.dollhouse' || received_pose.mode === 'mode.floorplan') {
-                                        await sdk.Mode.moveTo(received_pose.mode, {
-                                            position: received_pose.position,
+                                        await sdk.Mode.moveTo(received_pose.mode, { //if it's outside of the house
+                                            position: received_pose.position, //just rotate, don't go to any sweep
                                             rotation: received_pose.rotation,
                                         });
                                     }
                                     else {
-                                        console.log('SWEEEEEEEEEEEEEP CHANGE');
                                         if (sweepid_cache !== received_pose.sweep) {
                                             await sdk.Sweep.moveTo(msg.sweep, { //receives data and update camera
-                                                position: msg.position,
+                                                position: msg.position, //navigate inside the house
                                                 rotation: msg.rotation,
                                                 mode: msg.mode,
                                                 transition: sdk.Sweep.Transition.FLY,
 
                                             });
                                         }
-                                        else {
-                                            console.log('CACHE SWEEP: ' + sweepid_cache);
-                                        }
                                     }
-
-
-
                                     //await sdk.Camera.rotate(msg.rotation.x, msg.rotation.y, { speed: 30 });
                                 }
 
 
                             });
-
-
-
 
                         })
                         .catch((e) => {
