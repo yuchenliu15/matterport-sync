@@ -15,11 +15,11 @@ io.on("connection", (socket) => {
     socket.on('sweepid', (msg) => {
         socket.broadcast.emit('sweepid', msg);
     });
-    socket.on('viewmode', () => {
-        socket.broadcast.emit('viewmode');
+    socket.on('viewmode', (msg) => {
+        socket.broadcast.emit('viewmode', msg);
     });
 });
 
 http.listen(3000, () => {
-    console.log('listening on 3000');   
+    console.log('listening on 3000');
 });

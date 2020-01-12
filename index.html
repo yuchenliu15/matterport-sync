@@ -23,6 +23,8 @@
             let hashid = 0;
             let last_pose = null;
             let received_pose = null;
+            let current_mode = null;
+            let sweepid_cache = null;
             const socket = io();
             const mp_iframe = $('#showcase_iframe');
 
@@ -56,6 +58,7 @@
                             sdk.Camera.pose.subscribe((pose) => { //sends pose data continuously when camera moves
                                 count += 1;
                                 last_pose = pose;
+                                console.log("NEW SWEEP" + pose.sweep);
                                 if (hashid === 1 /*&& count === 25*/) { //count is to slowdown sending data
                                     count = 0;
 
@@ -65,69 +68,87 @@
                             /*
                             sdk.on(sdk.Camera.Event.MOVE, () => {
                                 console.log('CAMERRRRRRRRRRAAAAAAAA');
-
+    
                             });
                             */
-                            sdk.on(sdk.Mode.Event.CHANGE_END, () => {
-                                console.log('MODE CHANGEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE: ' + sdk.Mode.Mode);
-                                if (hashid === 1) {
-                                    socket.emit('viewmode');
+
+                            sdk.on(sdk.Sweep.Event.ENTER, async (e1, e2) => {
+                                console.log('LEAVING ' + e1 + ' ' + e2);
+                            });
+
+                            sdk.on(sdk.Mode.Event.CHANGE_END, (e1, e2) => {
+
+                                if (hashid === 1 && e2 === 'mode.dollhouse') {
+                                    socket.emit('viewmode', last_pose.sweep);
+                                    console.log('MODE CHANGEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE: ' + e1 + e2);
                                 }
 
                             });
 
-                            socket.on('viewmode', () => {
-                                console.log('SUCCESSFULLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL');
-                                sdk.Mode.moveTo(received_pose.mode)
-                                    .then(function (nextMode) {
-                                        // Move successful.
-                                        console.log('Arrived at new view mode ' + nextMode);
-                                    })
-                                    .catch(function (error) {
-                                        // Error with moveTo command
-                                        console.log('Viewmode change error: ' + error);
-                                    });
+                            socket.on('viewmode', (msg) => {
+                                sweepid_cache = msg;
+                                console.log('The view mode of sweeeeeeeeeeeeeeeeeeeeep');
                             });
 
 
                             sdk.on(sdk.Sweep.Event.ENTER, async () => {
                                 if (hashid === 1) {
                                     setTimeout(() => {
+                                        console.log("Test which is last");
                                         socket.emit('sweepid', last_pose);
-                                    }, 1000);
+                                    }, 800);
                                 }
+
                                 else {
-                                    if (received_pose) {
+                                    if (received_pose && received_pose.mode !== 'mode.transitioning') {
                                         await sdk.Mode.moveTo(received_pose.mode, {
                                             position: received_pose.position,
-                                        });
-                                        /*
-                                        await sdk.Sweep.moveTo(received_pose.sweep, { //update camera's position for the last time
                                             rotation: received_pose.rotation,
-                                            transition: sdk.Sweep.Transition.FLY,
-
                                         });
-                                        */
+
+                                        /*                                     await sdk.Sweep.moveTo(received_pose.sweep, { //update camera's position for the last time
+                                                                                rotation: received_pose.rotation,
+                                                                                transition: sdk.Sweep.Transition.FLY,
+                                        
+                                                                            }); */
+
 
                                     }
                                 }
+
                             });
 
                             socket.on('sweepid', async msg => { //sync leader and client screen
-                                if (hashid != 1) {
+                                if (hashid !== 1) {
                                     received_pose = msg;
+                                    if (received_pose.mode === 'mode.dollhouse' || received_pose.mode === 'mode.floorplan') {
+                                        await sdk.Mode.moveTo(received_pose.mode, {
+                                            position: received_pose.position,
+                                            rotation: received_pose.rotation,
+                                        });
+                                    }
+                                    else {
+                                        console.log('SWEEEEEEEEEEEEEP CHANGE');
+                                        if (sweepid_cache !== received_pose.sweep) {
+                                            await sdk.Sweep.moveTo(msg.sweep, { //receives data and update camera
+                                                position: msg.position,
+                                                rotation: msg.rotation,
+                                                mode: msg.mode,
+                                                transition: sdk.Sweep.Transition.FLY,
 
-                                    await sdk.Sweep.moveTo(msg.sweep, { //receives data and update camera
-                                        position: msg.position,
-                                        rotation: msg.rotation,
-                                        mode: msg.mode,
-                                        transition: sdk.Sweep.Transition.FLY,
+                                            });
+                                        }
+                                        else {
+                                            console.log('CACHE SWEEP: ' + sweepid_cache);
+                                        }
+                                    }
 
-                                    });
 
 
                                     //await sdk.Camera.rotate(msg.rotation.x, msg.rotation.y, { speed: 30 });
                                 }
+
+
                             });
 
 
