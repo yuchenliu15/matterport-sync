@@ -1,7 +1,4 @@
 $(() => {
-
-    console.log('SEND SUCESSSSSSSSSSSSSSS');
-
     let hashid = 0;
     let last_pose = null;
     let received_pose = null;
@@ -15,6 +12,8 @@ $(() => {
         hashid = 1;
         console.log(hashid);
     });
+
+    const test = $('#btn-test');
 
     const iframe = mp_iframe.get(0);
     const api_key = '6f5de7bf268545b8ba336d829f673088';
@@ -34,11 +33,21 @@ $(() => {
                 )
                 .then((sdk) => {
 
+                    test.on('click', () => { //Set the current page as the leader
+                        const zoom = 10;
+                        console.log(last_pose);
+                        sdk.Floor.moveTo(1);
+                    });
+
                     //sdk.Camera.pose = test_pose;
-                    sdk.Camera.pose.subscribe((pose) => { //sends pose data continuously when camera moves
-                        last_pose = pose;
-                        if (hashid === 1) { //count is to slowdown sending data
-                            socket.emit('sweepid', pose);
+                    sdk.Camera.pose.subscribe(async (current_pose) => { //sends pose data continuously when camera moves
+                        last_pose = current_pose;
+                        if (hashid === 1) {
+                            let floorlevel = await sdk.Floor.getData();
+                            socket.emit('sweepid', {
+                                pose: last_pose,
+                                floor: floorlevel.currentFloor
+                            });
                         }
                     });
                     /*
@@ -62,9 +71,13 @@ $(() => {
 
                     sdk.on(sdk.Sweep.Event.ENTER, async () => {
                         if (hashid === 1) {
-                            setTimeout(() => { //last sweep update
-                                socket.emit('sweepid', last_pose); //delay the signaling so it waits to be last
-                            }, 900);
+                            setTimeout(async () => { //last sweep update
+                                let floorlevel = await sdk.Floor.getData();
+                                socket.emit('sweepid', {
+                                    pose: last_pose,
+                                    floor: floorlevel.currentFloor
+                                }); //delay the signaling so it waits to be last
+                            }, 1000);
                         } else {
                             //makes the transition from inside to dollhouse or floorplan
                             //delayed to be the last action
@@ -80,23 +93,41 @@ $(() => {
 
                     socket.on('sweepid', async msg => { //sync leader and client screen
                         if (hashid !== 1) {
-                            received_pose = msg;
+                            received_pose = msg.pose;
+
                             if (received_pose.mode === 'mode.dollhouse' || received_pose.mode === 'mode.floorplan') {
-                                await sdk.Mode.moveTo(received_pose.mode, { //if it's outside of the house
-                                    position: received_pose.position, //just rotate, don't go to any sweep
-                                    rotation: received_pose.rotation,
-                                });
+
+                                let cur_floor = await sdk.Floor.getData();
+                                if (msg.floor !== undefined && msg.floor >= 0 && msg.floor !== cur_floor.currentFloor) {
+                                    setTimeout(() => {
+                                        sdk.Floor.moveTo(msg.floor);
+                                    }, 1000)
+                                } else {
+                                    //console.log(msg.floor);
+                                }
+
+                                sdk.Mode.moveTo(received_pose.mode, { //if it's outside of the house
+                                        position: received_pose.position, //just rotate, don't go to any sweep
+                                        rotation: received_pose.rotation,
+                                    })
+                                    .catch(e => {
+                                        console.log('Set mode error: ' + e);
+                                    });
                             } else {
                                 if (sweepid_cache !== received_pose.sweep) {
-                                    await sdk.Sweep.moveTo(msg.sweep, { //receives data and update camera
-                                        position: msg.position, //navigate inside the house
-                                        rotation: msg.rotation,
-                                        mode: msg.mode,
-                                        transition: sdk.Sweep.Transition.FLY,
-
-                                    });
+                                    sdk.Sweep.moveTo(received_pose.sweep, { //receives data and update camera
+                                            rotation: received_pose.rotation,
+                                            transition: sdk.Sweep.Transition.FLY,
+                                        })
+                                        .catch(e => {
+                                            console.log('Set sweep error: ' + e);
+                                        });
                                 }
                             }
+
+
+
+
                             //await sdk.Camera.rotate(msg.rotation.x, msg.rotation.y, { speed: 30 });
                         }
 
