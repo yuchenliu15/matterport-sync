@@ -16,7 +16,6 @@ io.on("connection", (socket) => {
     connection_count += 1; //hashing method: first one to connect is the leader
     socket.emit('hash', connection_count);
     socket.on('sweepid', (msg) => {
-        console.log(msg);
         socket.broadcast.emit('sweepid', msg);
     });
     socket.on('viewmode', (msg) => {

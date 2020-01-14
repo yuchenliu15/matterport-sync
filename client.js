@@ -97,14 +97,7 @@ $(() => {
 
                             if (received_pose.mode === 'mode.dollhouse' || received_pose.mode === 'mode.floorplan') {
 
-                                let cur_floor = await sdk.Floor.getData();
-                                if (msg.floor !== undefined && msg.floor >= 0 && msg.floor !== cur_floor.currentFloor) {
-                                    setTimeout(() => {
-                                        sdk.Floor.moveTo(msg.floor);
-                                    }, 1000)
-                                } else {
-                                    //console.log(msg.floor);
-                                }
+
 
                                 sdk.Mode.moveTo(received_pose.mode, { //if it's outside of the house
                                         position: received_pose.position, //just rotate, don't go to any sweep
@@ -113,15 +106,29 @@ $(() => {
                                     .catch(e => {
                                         console.log('Set mode error: ' + e);
                                     });
+
+                                let cur_floor = await sdk.Floor.getData();
+                                if (msg.floor !== undefined && msg.floor >= 0 && msg.floor !== cur_floor.currentFloor) {
+                                    setTimeout(() => {
+                                        sdk.Floor.moveTo(msg.floor);
+                                    }, 700);
+                                } else if (msg.floor === -1 && msg.floor !== cur_floor.currentFloor) {
+                                    setTimeout(() => {
+                                        sdk.Floor.showAll();
+                                    }, 700);
+                                }
                             } else {
-                                if (sweepid_cache !== received_pose.sweep) {
-                                    sdk.Sweep.moveTo(received_pose.sweep, { //receives data and update camera
-                                            rotation: received_pose.rotation,
-                                            transition: sdk.Sweep.Transition.FLY,
-                                        })
-                                        .catch(e => {
-                                            console.log('Set sweep error: ' + e);
-                                        });
+                                console.log(received_pose.sweep);
+                                if (received_pose.sweep) {
+                                    if (sweepid_cache !== received_pose.sweep) {
+                                        sdk.Sweep.moveTo(received_pose.sweep, { //receives data and update camera
+                                                rotation: received_pose.rotation,
+                                                transition: sdk.Sweep.Transition.FLY,
+                                            })
+                                            .catch(e => {
+                                                console.log('Set sweep error: ' + e);
+                                            });
+                                    }
                                 }
                             }
 
